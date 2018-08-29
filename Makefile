@@ -8,5 +8,5 @@ build:
 
 install:
 	@echo "Yes! Installing ${app} ${GOPATH}/bin/sui"
-	@$(GO) build -i -o $(app) main *.go
+	@$(GO) install
 .PHONY: install
