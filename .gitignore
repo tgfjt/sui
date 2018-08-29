@@ -27,3 +27,5 @@ images/*.png
 images/*.gif
 
 .env
+
+sui
