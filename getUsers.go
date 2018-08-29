@@ -6,10 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"sync"
-
-	"github.com/alexsasharegan/dotenv"
 )
 
 const (
@@ -18,51 +15,15 @@ const (
 )
 
 type Users struct {
+	Ok    bool
+	Error string
 	Users []string `json:"users"`
 }
 
 type User struct {
+	Ok      bool
+	Error   string
 	Profile Profile `json:"profile"`
-}
-
-func getToken() string {
-	var once sync.Once
-	var t string
-
-	once.Do(func() {
-		err := dotenv.Load()
-		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
-		}
-
-		t = os.Getenv("SLACK_TOKEN")
-
-		if t == "" {
-			log.Fatalf("please set env:SLACK_TOKEN")
-		}
-	})
-
-	return t
-}
-
-func getGroupId() string {
-	var once sync.Once
-	var gID string
-
-	once.Do(func() {
-		err := dotenv.Load()
-		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
-		}
-
-		gID = os.Getenv("GROUP_ID")
-
-		if gID == "" {
-			log.Fatalf("please set env:GROUP_IDd")
-		}
-	})
-
-	return gID
 }
 
 func getClient() *http.Client {
@@ -76,11 +37,11 @@ func getClient() *http.Client {
 	return c
 }
 
-func GetUsers() Users {
+func GetUsers(t string, gID string) Users {
 	c := getClient()
 	d := url.Values{}
-	d.Set("token", getToken())
-	d.Set("usergroup", getGroupId())
+	d.Set("token", t)
+	d.Set("usergroup", gID)
 
 	req, _ := http.NewRequest("POST", usersApi, bytes.NewBufferString(d.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -88,20 +49,24 @@ func GetUsers() Users {
 	res, err := c.Do(req)
 
 	if err != nil {
-		log.Fatalf("fail to get users: %v", getGroupId())
+		log.Fatalf("fail to get users: %v", gID)
 	}
 
 	var users Users
 	json.NewDecoder(res.Body).Decode(&users)
 
+	if !users.Ok {
+		log.Fatalf("fail to get users: %v", users.Error)
+	}
+
 	return users
 }
 
-func GetUser(userId string) User {
+func GetUser(t string, uID string) User {
 	c := getClient()
 	d := url.Values{}
-	d.Set("token", getToken())
-	d.Set("user", userId)
+	d.Set("token", t)
+	d.Set("user", uID)
 
 	req, _ := http.NewRequest("POST", userApi, bytes.NewBufferString(d.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -109,11 +74,15 @@ func GetUser(userId string) User {
 	res, err := c.Do(req)
 
 	if err != nil {
-		log.Fatalf("fail to get user: %v", userId)
+		log.Fatalf("fail to get user: %v", uID)
 	}
 
 	var user User
 	json.NewDecoder(res.Body).Decode(&user)
+
+	if !user.Ok {
+		log.Fatalf("fail to get user: %v", user.Error)
+	}
 
 	return user
 }
