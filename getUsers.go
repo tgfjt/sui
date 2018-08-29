@@ -21,11 +21,6 @@ type Users struct {
 	Users []string `json:"users"`
 }
 
-type Profile struct {
-	Image       string `json:"image_512"`
-	DisplayName string `json:"display_name"`
-}
-
 type User struct {
 	Profile Profile `json:"profile"`
 }

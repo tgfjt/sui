@@ -8,7 +8,12 @@ import (
 	"os"
 )
 
-func GetUserImage(p Profile) {
+type Profile struct {
+	Image       string `json:"image_512"`
+	DisplayName string `json:"display_name"`
+}
+
+func (p Profile) GetUserImage() {
 	res, err := http.Get(p.Image)
 
 	if err != nil {

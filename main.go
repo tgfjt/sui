@@ -1,17 +1,19 @@
 package main
 
 import (
-	"fmt"
+	"time"
 )
 
 func main() {
 	us := GetUsers()
 
-	for _, uID := range us.Users {
-		fmt.Printf("UserId: %v\n", uID)
-
-		u := GetUser(uID)
-
-		GetUserImage(u.Profile)
+	f := func(uID string) {
+		GetUser(uID).Profile.GetUserImage()
 	}
+
+	for _, uID := range us.Users {
+		go f(uID)
+	}
+
+	time.Sleep(time.Second)
 }
